@@ -1,0 +1,49 @@
+# Build directory
+build/
+
+# Executable files
+*.exe
+*.obj
+*.lib
+*.dll
+
+# IDE files
+.vscode/
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Environment variables files
+.env
+
+# OS specific files
+Thumbs.db
+.DS_Store
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+
+# Visual Studio files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# MSVC files
+*.pdb
+*.ilk
+*.pch
+*.idb
+*.sdf
+
+# OpenCV files
+opencv_*
+
+# Test files
+test_*.cpp
+demo_*.cpp
