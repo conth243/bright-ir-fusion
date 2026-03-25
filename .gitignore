@@ -6,6 +6,16 @@ build/
 *.obj
 *.lib
 *.dll
+*.ilk
+*.pdb
+*.pch
+*.idb
+*.sdf
+*.exp
+*.res
+*.manifest
+*.tlb
+*.tlh
 
 # IDE files
 .vscode/
