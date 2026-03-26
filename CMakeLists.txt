@@ -26,7 +26,7 @@ else()
 endif()
 
 # 添加可执行文件
-add_executable(StereoCameraApp src/main.cpp)
+add_executable(StereoCameraApp src/main.cpp src/ui_manager.cpp)
 
 # 链接库
 target_link_libraries(StereoCameraApp ${OpenCV_LIBS} gdi32 user32)

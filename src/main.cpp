@@ -1,49 +1,50 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include "ui_manager.h"
 
 int main() {
-    std::cout << "=== Iteration 1: Core Module and Basic Framework ===" << std::endl;
-    
-    // Check OpenCV version
+    std::cout << "=== Bright IR Fusion - UI Demo ===" << std::endl;
     std::cout << "OpenCV version: " << CV_VERSION << std::endl;
     
-    // Create a simple image
-    cv::Mat image(400, 600, CV_8UC3, cv::Scalar(255, 255, 255));
+    // Create UI Manager
+    UIManager ui;
     
-    // Add text to the image
-    cv::putText(image, "Core Module Test", cv::Point(50, 100), 
-                cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
-    cv::putText(image, "OpenCV Version: " + std::string(CV_VERSION), 
-                cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1, 
-                cv::Scalar(0, 0, 255), 2);
-    cv::putText(image, "Iteration 1 Validation", 
-                cv::Point(50, 200), cv::FONT_HERSHEY_SIMPLEX, 1, 
-                cv::Scalar(255, 0, 0), 2);
-    cv::putText(image, "Press ESC to exit", cv::Point(50, 250), 
-                cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 0), 2);
-    
-    // Create display window
-    cv::namedWindow("Core Module Test", cv::WINDOW_NORMAL);
-    
-    // Display image
-    cv::imshow("Core Module Test", image);
-    
-    std::cout << "Core module test window created" << std::endl;
-    std::cout << "Press ESC to exit test" << std::endl;
-    
-    // Wait for key press
-    while (true) {
-        int key = cv::waitKey(1);
-        if (key == 27) { // ESC key
-            break;
-        }
+    // Initialize UI (1024x768 window, center 640x512 image display area)
+    if (!ui.initialize("Bright IR Fusion", 1024, 768)) {
+        std::cout << "Failed to initialize UI" << std::endl;
+        return -1;
     }
     
-    // Release resources
-    cv::destroyWindow("Core Module Test");
+    std::cout << "UI initialized successfully" << std::endl;
+    std::cout << "Window size: 1024x768" << std::endl;
+    std::cout << "Display area: 640x512 (center)" << std::endl;
+    std::cout << "Left buttons: Power, Menu, Range" << std::endl;
+    std::cout << "Right buttons: Zoom, Capture, Pseudo" << std::endl;
+    std::cout << "Press ESC to exit" << std::endl;
     
-    std::cout << "Core module test completed" << std::endl;
-    std::cout << "Iteration 1 validation successful!" << std::endl;
+    // Create a sample image
+    cv::Mat sampleImage(512, 640, CV_8UC3, cv::Scalar(40, 40, 40));
+    cv::putText(sampleImage, "Image Display Area", cv::Point(200, 256),
+                cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(200, 200, 200), 2);
+    cv::putText(sampleImage, "640 x 512", cv::Point(250, 300),
+                cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(150, 150, 150), 2);
+    
+    ui.setDisplayImage(sampleImage);
+    
+    // Main loop
+    while (ui.isRunning()) {
+        // Render UI
+        ui.render();
+        
+        // Handle keyboard events
+        int key = cv::waitKey(30);
+        ui.handleKeyEvent(key);
+    }
+    
+    // Close UI
+    ui.close();
+    
+    std::cout << "Application closed successfully" << std::endl;
     
     return 0;
 }
