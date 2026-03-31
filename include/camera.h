@@ -22,11 +22,7 @@ public:
     // 获取摄像头信息
     std::string getDeviceName();
     
-    // 设置摄像头参数
-    bool setParameter(const std::string& param, double value);
-    
-    // 获取摄像头参数
-    double getParameter(const std::string& param);
+
     
 private:
     cv::VideoCapture cap;
@@ -39,5 +35,11 @@ private:
 
 // 枚举所有可用的摄像头
 std::vector<std::string> enumerateCameras();
+
+// 检测摄像头设备状态
+bool isCameraAvailable(int index);
+
+// 获取摄像头设备的详细信息
+std::string getCameraInfo(int index);
 
 #endif // CAMERA_H

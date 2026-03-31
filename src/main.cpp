@@ -1,9 +1,10 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include "ui_manager.h"
+#include "camera.h"
 
 int main() {
-    std::cout << "=== Bright IR Fusion - UI Demo ===" << std::endl;
+    std::cout << "=== Bright IR Fusion - UVC Camera Demo ===" << std::endl;
     std::cout << "OpenCV version: " << CV_VERSION << std::endl;
     
     // Create UI Manager
@@ -22,17 +23,51 @@ int main() {
     std::cout << "Right buttons: Zoom, Capture, Pseudo" << std::endl;
     std::cout << "Press ESC to exit" << std::endl;
     
-    // Create a sample image
-    cv::Mat sampleImage(512, 640, CV_8UC3, cv::Scalar(40, 40, 40));
-    cv::putText(sampleImage, "Image Display Area", cv::Point(200, 256),
-                cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(200, 200, 200), 2);
-    cv::putText(sampleImage, "640 x 512", cv::Point(250, 300),
-                cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(150, 150, 150), 2);
+    // Enumerate available cameras
+    std::vector<std::string> cameras = enumerateCameras();
+    std::cout << "Available cameras:" << std::endl;
+    for (size_t i = 0; i < cameras.size(); i++) {
+        std::cout << "  " << i << ": " << cameras[i] << std::endl;
+    }
     
-    ui.setDisplayImage(sampleImage);
+    // Camera and UI state
+    Camera camera;
+    bool cameraInitialized = false;
+    int selectedCameraIndex = -1;
+    
+    // Set camera selected callback
+    ui.setCameraSelectedCallback([&](int index) {
+        selectedCameraIndex = index;
+        std::cout << "Selected camera: " << cameras[index] << std::endl;
+        
+        // Initialize camera
+        if (cameraInitialized) {
+            camera.release();
+        }
+        
+        if (camera.initialize(index, 640, 480, 30)) {
+            std::cout << "Camera initialized successfully" << std::endl;
+            cameraInitialized = true;
+        } else {
+            std::cout << "Failed to initialize camera" << std::endl;
+            cameraInitialized = false;
+        }
+    });
+    
+    // Show camera detection dialog
+    ui.showCameraDetectionDialog(cameras);
     
     // Main loop
+    cv::Mat frame;
     while (ui.isRunning()) {
+        // Capture frame from camera if initialized
+        if (cameraInitialized && camera.capture(frame)) {
+            // Resize frame to fit display area (640x512)
+            cv::Mat resizedFrame;
+            cv::resize(frame, resizedFrame, cv::Size(640, 512));
+            ui.setDisplayImage(resizedFrame);
+        }
+        
         // Render UI
         ui.render();
         
@@ -41,7 +76,10 @@ int main() {
         ui.handleKeyEvent(key);
     }
     
-    // Close UI
+    // Release resources
+    if (cameraInitialized) {
+        camera.release();
+    }
     ui.close();
     
     std::cout << "Application closed successfully" << std::endl;

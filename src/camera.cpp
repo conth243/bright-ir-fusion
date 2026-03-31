@@ -50,45 +50,7 @@ std::string Camera::getDeviceName() {
     return deviceName;
 }
 
-bool Camera::setParameter(const std::string& param, double value) {
-    if (!cap.isOpened()) {
-        return false;
-    }
-    
-    if (param == "brightness") {
-        return cap.set(cv::CAP_PROP_BRIGHTNESS, value);
-    } else if (param == "contrast") {
-        return cap.set(cv::CAP_PROP_CONTRAST, value);
-    } else if (param == "saturation") {
-        return cap.set(cv::CAP_PROP_SATURATION, value);
-    } else if (param == "exposure") {
-        return cap.set(cv::CAP_PROP_EXPOSURE, value);
-    } else if (param == "gain") {
-        return cap.set(cv::CAP_PROP_GAIN, value);
-    }
-    
-    return false;
-}
 
-double Camera::getParameter(const std::string& param) {
-    if (!cap.isOpened()) {
-        return -1.0;
-    }
-    
-    if (param == "brightness") {
-        return cap.get(cv::CAP_PROP_BRIGHTNESS);
-    } else if (param == "contrast") {
-        return cap.get(cv::CAP_PROP_CONTRAST);
-    } else if (param == "saturation") {
-        return cap.get(cv::CAP_PROP_SATURATION);
-    } else if (param == "exposure") {
-        return cap.get(cv::CAP_PROP_EXPOSURE);
-    } else if (param == "gain") {
-        return cap.get(cv::CAP_PROP_GAIN);
-    }
-    
-    return -1.0;
-}
 
 std::vector<std::string> enumerateCameras() {
     std::vector<std::string> cameras;
@@ -106,4 +68,32 @@ std::vector<std::string> enumerateCameras() {
     }
     
     return cameras;
+}
+
+bool isCameraAvailable(int index) {
+    cv::VideoCapture cap(index);
+    bool available = cap.isOpened();
+    cap.release();
+    return available;
+}
+
+std::string getCameraInfo(int index) {
+    cv::VideoCapture cap(index);
+    if (!cap.isOpened()) {
+        return "Camera not available";
+    }
+    
+    std::string info = "Camera " + std::to_string(index);
+    
+    // 尝试获取摄像头的一些属性
+    double width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+    double height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+    double fps = cap.get(cv::CAP_PROP_FPS);
+    
+    info += " (" + std::to_string(static_cast<int>(width)) + "x" + 
+            std::to_string(static_cast<int>(height)) + ", " + 
+            std::to_string(static_cast<int>(fps)) + "fps)";
+    
+    cap.release();
+    return info;
 }

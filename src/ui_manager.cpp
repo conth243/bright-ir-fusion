@@ -7,6 +7,8 @@ UIManager::UIManager()
     , windowHeight_(768)
     , isRunning_(false)
     , showAbout_(false)
+    , showCameraDialog_(false)
+    , selectedCameraIndex_(0)
     , versionInfo_("Bright IR Fusion v1.0\nOpenCV Version: " + std::string(CV_VERSION)) {
 }
 
@@ -159,6 +161,11 @@ void UIManager::render() {
         drawAboutDialog(canvas);
     }
     
+    // Draw camera detection dialog
+    if (showCameraDialog_) {
+        drawCameraDetectionDialog(canvas);
+    }
+    
     cv::imshow(windowName_, canvas);
 }
 
@@ -209,6 +216,71 @@ void UIManager::drawAboutDialog(cv::Mat& canvas) {
                 cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(150, 150, 150), 1);
 }
 
+void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
+    int dialogWidth = 400;
+    int dialogHeight = detectedCameras_.empty() ? 200 : 300;
+    int dialogX = (windowWidth_ - dialogWidth) / 2;
+    int dialogY = (windowHeight_ - dialogHeight) / 2;
+    cameraDialogRect_ = cv::Rect(dialogX, dialogY, dialogWidth, dialogHeight);
+    
+    cv::rectangle(canvas, cameraDialogRect_, cv::Scalar(80, 80, 80), -1);
+    cv::rectangle(canvas, cameraDialogRect_, cv::Scalar(200, 200, 200), 2);
+    
+    cv::putText(canvas, "Camera Detection", cv::Point(dialogX + 20, dialogY + 40),
+                cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 2);
+    
+    if (detectedCameras_.empty()) {
+        // No cameras found
+        cv::putText(canvas, "No cameras detected!", cv::Point(dialogX + 20, dialogY + 80),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 100, 100), 1);
+        cv::putText(canvas, "Please connect a UVC camera and try again.", cv::Point(dialogX + 20, dialogY + 120),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(200, 200, 200), 1);
+    } else if (detectedCameras_.size() == 1) {
+        // Single camera found
+        cv::putText(canvas, "Camera found:", cv::Point(dialogX + 20, dialogY + 80),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(200, 200, 200), 1);
+        cv::putText(canvas, detectedCameras_[0], cv::Point(dialogX + 20, dialogY + 120),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(100, 255, 100), 1);
+    } else {
+        // Multiple cameras found
+        cv::putText(canvas, "Multiple cameras found:", cv::Point(dialogX + 20, dialogY + 80),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(200, 200, 200), 1);
+        
+        // Draw camera list
+        int listWidth = dialogWidth - 40;
+        int listHeight = 120;
+        int listX = dialogX + 20;
+        int listY = dialogY + 110;
+        cameraListRect_ = cv::Rect(listX, listY, listWidth, listHeight);
+        
+        cv::rectangle(canvas, cameraListRect_, cv::Scalar(100, 100, 100), -1);
+        cv::rectangle(canvas, cameraListRect_, cv::Scalar(200, 200, 200), 1);
+        
+        // Draw camera items
+        int itemHeight = listHeight / detectedCameras_.size();
+        for (size_t i = 0; i < detectedCameras_.size(); i++) {
+            cv::Rect itemRect(listX, listY + i * itemHeight, listWidth, itemHeight);
+            if (static_cast<int>(i) == selectedCameraIndex_) {
+                cv::rectangle(canvas, itemRect, cv::Scalar(150, 150, 255), -1);
+            }
+            cv::putText(canvas, detectedCameras_[i], cv::Point(listX + 10, listY + i * itemHeight + itemHeight / 2 + 5),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        }
+    }
+    
+    // Draw confirm button
+    int buttonWidth = 100;
+    int buttonHeight = 30;
+    int buttonX = dialogX + (dialogWidth - buttonWidth) / 2;
+    int buttonY = dialogY + dialogHeight - 50;
+    confirmButtonRect_ = cv::Rect(buttonX, buttonY, buttonWidth, buttonHeight);
+    
+    cv::rectangle(canvas, confirmButtonRect_, cv::Scalar(100, 150, 100), -1);
+    cv::rectangle(canvas, confirmButtonRect_, cv::Scalar(200, 200, 200), 1);
+    cv::putText(canvas, "OK", cv::Point(buttonX + 40, buttonY + 20),
+                cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1);
+}
+
 void UIManager::handleMouseEvent(int event, int x, int y, int flags) {
     cv::Point point(x, y);
     
@@ -218,6 +290,35 @@ void UIManager::handleMouseEvent(int event, int x, int y, int flags) {
                 showAbout_ = false;
                 return;
             }
+        }
+        return;
+    }
+    
+    if (showCameraDialog_) {
+        if (event == cv::EVENT_LBUTTONDOWN) {
+            // Check if clicked on confirm button
+            if (isPointInRect(point, confirmButtonRect_)) {
+                if (cameraSelectedCallback_ && !detectedCameras_.empty()) {
+                    cameraSelectedCallback_(selectedCameraIndex_);
+                }
+                showCameraDialog_ = false;
+                return;
+            }
+            
+            // Check if clicked on camera list (multiple cameras)
+            if (isPointInRect(point, cameraListRect_) && detectedCameras_.size() > 1) {
+                int itemHeight = cameraListRect_.height / detectedCameras_.size();
+                int clickedIndex = (point.y - cameraListRect_.y) / itemHeight;
+                if (clickedIndex >= 0 && clickedIndex < static_cast<int>(detectedCameras_.size())) {
+                    selectedCameraIndex_ = clickedIndex;
+                }
+            }
+            
+            // Click outside dialog to close
+            if (!isPointInRect(point, cameraDialogRect_)) {
+                showCameraDialog_ = false;
+            }
+            return;
         }
         return;
     }
@@ -263,6 +364,8 @@ void UIManager::handleKeyEvent(int key) {
     if (key == 27) {
         if (showAbout_) {
             showAbout_ = false;
+        } else if (showCameraDialog_) {
+            showCameraDialog_ = false;
         } else {
             isRunning_ = false;
         }
@@ -329,6 +432,16 @@ void UIManager::setPseudoColorCallback(std::function<void()> callback) {
     if (rightButtons_.size() > 2) {
         rightButtons_[2].callback = callback;
     }
+}
+
+void UIManager::showCameraDetectionDialog(const std::vector<std::string>& cameras) {
+    detectedCameras_ = cameras;
+    selectedCameraIndex_ = 0;
+    showCameraDialog_ = true;
+}
+
+void UIManager::setCameraSelectedCallback(std::function<void(int)> callback) {
+    cameraSelectedCallback_ = callback;
 }
 
 void UIManager::defaultPowerCallback() {

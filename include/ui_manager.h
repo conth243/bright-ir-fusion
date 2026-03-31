@@ -39,6 +39,10 @@ public:
     void setCaptureCallback(std::function<void()> callback);
     void setPseudoColorCallback(std::function<void()> callback);
     
+    // 摄像头检测和选择相关方法
+    void showCameraDetectionDialog(const std::vector<std::string>& cameras);
+    void setCameraSelectedCallback(std::function<void(int)> callback);
+    
 private:
     std::string windowName_;
     int windowWidth_;
@@ -68,6 +72,15 @@ private:
     std::function<void()> zoomCallback_;
     std::function<void()> captureCallback_;
     std::function<void()> pseudoColorCallback_;
+    std::function<void(int)> cameraSelectedCallback_;
+    
+    // 摄像头检测对话框相关
+    bool showCameraDialog_;
+    std::vector<std::string> detectedCameras_;
+    int selectedCameraIndex_;
+    cv::Rect cameraDialogRect_;
+    cv::Rect cameraListRect_;
+    cv::Rect confirmButtonRect_;
     
     void defaultPowerCallback();
     void defaultMenuCallback();
@@ -75,6 +88,7 @@ private:
     void defaultZoomCallback();
     void defaultCaptureCallback();
     void defaultPseudoColorCallback();
+    void drawCameraDetectionDialog(cv::Mat& canvas);
 };
 
 #endif // UI_MANAGER_H
