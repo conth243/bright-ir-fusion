@@ -477,7 +477,8 @@ void UIManager::setDeviceInfo(const std::string& deviceInfo) {
 }
 
 void UIManager::defaultPowerCallback() {
-    std::cout << "Power button clicked" << std::endl;
+    std::cout << "Power button clicked - Exiting application" << std::endl;
+    isRunning_ = false;
 }
 
 void UIManager::defaultMenuCallback() {
