@@ -21,6 +21,9 @@ public:
     
     // 获取摄像头信息
     std::string getDeviceName();
+    int getWidth();
+    int getHeight();
+    int getFPS();
     
 
     

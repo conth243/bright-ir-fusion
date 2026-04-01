@@ -62,35 +62,35 @@ std::vector<std::string> enumerateVideoCaptureDevices() {
     return deviceNames;
 }
 
-Camera::Camera() : deviceIndex(-1), width(0), height(0), fps(0) {
+Camera::Camera() {
+    deviceIndex = -1;
+    width = 0;
+    height = 0;
+    fps = 0;
 }
 
 Camera::~Camera() {
-    release();
+    if (cap.isOpened()) {
+        cap.release();
+    }
 }
 
-bool Camera::initialize(int index, int width, int height, int fps) {
-    deviceIndex = index;
-    this->width = width;
-    this->height = height;
-    this->fps = fps;
+bool Camera::initialize(int idx, int w, int h, int f) {
+    deviceIndex = idx;
+    width = w;
+    height = h;
+    fps = f;
     
-    // 打开摄像头
-    if (!cap.open(index)) {
+    if (!cap.open(idx)) {
         return false;
     }
     
-    // 设置摄像头参数
-    cap.set(cv::CAP_PROP_FRAME_WIDTH, width);
-    cap.set(cv::CAP_PROP_FRAME_HEIGHT, height);
-    cap.set(cv::CAP_PROP_FPS, fps);
-    
     // 获取设备名称
     std::vector<std::string> devices = enumerateVideoCaptureDevices();
-    if (!devices.empty() && index < devices.size()) {
-        deviceName = devices[index];
+    if (!devices.empty() && idx < devices.size()) {
+        deviceName = devices[idx];
     } else {
-        deviceName = "Camera " + std::to_string(index);
+        deviceName = "Camera " + std::to_string(idx);
     }
     
     return true;
@@ -114,7 +114,17 @@ std::string Camera::getDeviceName() {
     return deviceName;
 }
 
+int Camera::getWidth() {
+    return width;
+}
 
+int Camera::getHeight() {
+    return height;
+}
+
+int Camera::getFPS() {
+    return fps;
+}
 
 std::vector<std::string> enumerateCameras() {
     // 使用DirectShow API枚举摄像头设备，获取真实名称
@@ -122,50 +132,41 @@ std::vector<std::string> enumerateCameras() {
     
     // 如果DirectShow枚举失败，回退到原方法
     if (devices.empty()) {
-        std::vector<std::string> cameras;
-        int index = 0;
+        std::vector<std::string> cams;
+        int i = 0;
         
         while (true) {
-            cv::VideoCapture cap(index);
-            if (cap.isOpened()) {
-                cameras.push_back("Camera " + std::to_string(index));
-                cap.release();
-                index++;
+            cv::VideoCapture c(i);
+            if (c.isOpened()) {
+                cams.push_back("Camera " + std::to_string(i));
+                c.release();
+                i++;
             } else {
                 break;
             }
         }
         
-        return cameras;
+        return cams;
     }
     
     return devices;
 }
 
-bool isCameraAvailable(int index) {
-    cv::VideoCapture cap(index);
-    bool available = cap.isOpened();
-    cap.release();
-    return available;
+bool isCameraAvailable(int idx) {
+    cv::VideoCapture c(idx);
+    bool avail = c.isOpened();
+    c.release();
+    return avail;
 }
 
-std::string getCameraInfo(int index) {
-    cv::VideoCapture cap(index);
-    if (!cap.isOpened()) {
+std::string getCameraInfo(int idx) {
+    cv::VideoCapture c(idx);
+    if (!c.isOpened()) {
         return "Camera not available";
     }
     
-    std::string info = "Camera " + std::to_string(index);
+    std::string info = "Camera " + std::to_string(idx);
     
-    // 尝试获取摄像头的一些属性
-    double width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-    double height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
-    double fps = cap.get(cv::CAP_PROP_FPS);
-    
-    info += " (" + std::to_string(static_cast<int>(width)) + "x" + 
-            std::to_string(static_cast<int>(height)) + ", " + 
-            std::to_string(static_cast<int>(fps)) + "fps)";
-    
-    cap.release();
+    c.release();
     return info;
 }
