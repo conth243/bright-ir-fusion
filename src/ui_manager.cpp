@@ -10,8 +10,8 @@ UIManager::UIManager()
     , showCameraDialog_(false)
     , showCameraInfo_(false)
     , selectedCameraIndex_(0)
-    , versionInfo_("Bright IR Fusion v1.1\nOpenCV Version: " + std::string(CV_VERSION))
-    , deviceInfo_("No device information available") {
+    , versionInfo_("Bright IR Fusion v1.1")
+    , deviceInfo_("No camera found") {
 }
 
 UIManager::~UIManager() {
@@ -23,22 +23,17 @@ bool UIManager::initialize(const std::string& windowName, int windowWidth, int w
     windowWidth_ = windowWidth;
     windowHeight_ = windowHeight;
     
-    // Create window
     cv::namedWindow(windowName_, cv::WINDOW_NORMAL);
     cv::resizeWindow(windowName_, windowWidth_, windowHeight_);
     
-    // Set display area (center 640x512)
     int displayX = (windowWidth_ - 640) / 2;
     int displayY = (windowHeight_ - 512) / 2;
     displayRect_ = cv::Rect(displayX, displayY, 640, 512);
     
-    // Create background
     background_ = cv::Mat(windowHeight_, windowWidth_, CV_8UC3, cv::Scalar(50, 50, 50));
     
-    // Initialize buttons
     initializeButtons();
     
-    // Set mouse callback
     cv::setMouseCallback(windowName_, [](int event, int x, int y, int flags, void* userdata) {
         UIManager* ui = static_cast<UIManager*>(userdata);
         ui->handleMouseEvent(event, x, y, flags);
@@ -49,7 +44,6 @@ bool UIManager::initialize(const std::string& windowName, int windowWidth, int w
 }
 
 void UIManager::initializeButtons() {
-    // Button size and spacing
     int buttonWidth = 80;
     int buttonHeight = 40;
     int buttonSpacing = 20;
@@ -57,7 +51,6 @@ void UIManager::initializeButtons() {
     int rightButtonX = windowWidth_ - 50 - buttonWidth;
     int startY = (windowHeight_ - (3 * buttonHeight + 2 * buttonSpacing)) / 2;
     
-    // Left buttons (top to bottom: Power, Menu, Range)
     Button powerBtn;
     powerBtn.label = "Power";
     powerBtn.rect = cv::Rect(leftButtonX, startY, buttonWidth, buttonHeight);
@@ -91,7 +84,6 @@ void UIManager::initializeButtons() {
     rangeBtn.pressedColor = cv::Scalar(80, 80, 80);
     leftButtons_.push_back(rangeBtn);
     
-    // Right buttons (top to bottom: Zoom, Capture, Pseudo)
     Button zoomBtn;
     zoomBtn.label = "Zoom";
     zoomBtn.rect = cv::Rect(rightButtonX, startY, buttonWidth, buttonHeight);
@@ -135,10 +127,8 @@ void UIManager::setDisplayImage(const cv::Mat& image) {
 void UIManager::render() {
     cv::Mat canvas = background_.clone();
     
-    // Draw display area border
     cv::rectangle(canvas, displayRect_, cv::Scalar(200, 200, 200), 2);
     
-    // Draw image
     if (!displayImage_.empty()) {
         displayImage_.copyTo(canvas(displayRect_));
     } else {
@@ -148,22 +138,18 @@ void UIManager::render() {
         placeholder.copyTo(canvas(displayRect_));
     }
     
-    // Draw left buttons
     for (auto& button : leftButtons_) {
         drawButton(canvas, button);
     }
     
-    // Draw right buttons
     for (auto& button : rightButtons_) {
         drawButton(canvas, button);
     }
     
-    // Draw about dialog
     if (showAbout_) {
         drawAboutDialog(canvas);
     }
     
-    // Draw camera detection dialog
     if (showCameraDialog_) {
         drawCameraDetectionDialog(canvas);
     }
@@ -202,7 +188,6 @@ void UIManager::drawAboutDialog(cv::Mat& canvas) {
     cv::rectangle(canvas, aboutDialogRect_, cv::Scalar(80, 80, 80), -1);
     cv::rectangle(canvas, aboutDialogRect_, cv::Scalar(200, 200, 200), 2);
     
-    // 第一块：关于
     cv::putText(canvas, "About", cv::Point(dialogX + 20, dialogY + 40),
                 cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 2);
     
@@ -215,10 +200,8 @@ void UIManager::drawAboutDialog(cv::Mat& canvas) {
         lineY += 30;
     }
     
-    // 分割线
     cv::line(canvas, cv::Point(dialogX + 20, lineY + 10), cv::Point(dialogX + dialogWidth - 20, lineY + 10), cv::Scalar(150, 150, 150), 1);
     
-    // 第二块：设备信息
     cv::putText(canvas, "Device Information", cv::Point(dialogX + 20, lineY + 40),
                 cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 1);
     
@@ -232,10 +215,6 @@ void UIManager::drawAboutDialog(cv::Mat& canvas) {
     
     cv::putText(canvas, "Press ESC or click outside to close", cv::Point(dialogX + 20, dialogY + dialogHeight - 20),
                 cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(150, 150, 150), 1);
-}
-
-void UIManager::setDeviceInfo(const std::string& deviceInfo) {
-    deviceInfo_ = deviceInfo;
 }
 
 void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
@@ -252,23 +231,20 @@ void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
                 cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 2);
     
     if (detectedCameras_.empty()) {
-        // No cameras found
         cv::putText(canvas, "No cameras detected!", cv::Point(dialogX + 20, dialogY + 80),
                     cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 100, 100), 1);
         cv::putText(canvas, "Please connect a UVC camera and try again.", cv::Point(dialogX + 20, dialogY + 120),
                     cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(200, 200, 200), 1);
     } else if (detectedCameras_.size() == 1) {
-        // Single camera found
         cv::putText(canvas, "Camera found:", cv::Point(dialogX + 20, dialogY + 80),
                     cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(200, 200, 200), 1);
         cv::putText(canvas, detectedCameras_[0], cv::Point(dialogX + 20, dialogY + 120),
                     cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(100, 255, 100), 1);
         
-        // Show camera info if available
         if (showCameraInfo_ && !detectedCameraInfos_.empty()) {
             const auto& info = detectedCameraInfos_[0];
             std::string resolution = "Resolution: " + std::to_string(info.width) + "x" + std::to_string(info.height);
-            std::string fps = "FPS: " + std::to_string(info.fps);
+            std::string fps = "Frame Rate: " + std::to_string(info.fps) + "fps";
             
             cv::putText(canvas, resolution, cv::Point(dialogX + 20, dialogY + 160),
                         cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(200, 200, 200), 1);
@@ -276,11 +252,9 @@ void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
                         cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(200, 200, 200), 1);
         }
     } else {
-        // Multiple cameras found
         cv::putText(canvas, "Multiple cameras found:", cv::Point(dialogX + 20, dialogY + 80),
                     cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(200, 200, 200), 1);
         
-        // Draw camera list
         int listWidth = dialogWidth - 40;
         int listHeight = 150;
         int listX = dialogX + 20;
@@ -290,7 +264,6 @@ void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
         cv::rectangle(canvas, cameraListRect_, cv::Scalar(100, 100, 100), -1);
         cv::rectangle(canvas, cameraListRect_, cv::Scalar(200, 200, 200), 1);
         
-        // Draw camera items
         int itemHeight = listHeight / detectedCameras_.size();
         for (size_t i = 0; i < detectedCameras_.size(); i++) {
             cv::Rect itemRect(listX, listY + i * itemHeight, listWidth, itemHeight);
@@ -301,11 +274,10 @@ void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
                         cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
         }
         
-        // Show selected camera info if available
         if (showCameraInfo_ && !detectedCameraInfos_.empty() && selectedCameraIndex_ < detectedCameraInfos_.size()) {
             const auto& info = detectedCameraInfos_[selectedCameraIndex_];
             std::string resolution = "Resolution: " + std::to_string(info.width) + "x" + std::to_string(info.height);
-            std::string fps = "FPS: " + std::to_string(info.fps);
+            std::string fps = "Frame Rate: " + std::to_string(info.fps) + "fps";
             
             cv::putText(canvas, "Selected camera info:", cv::Point(dialogX + 20, dialogY + 270),
                         cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(200, 200, 200), 1);
@@ -316,7 +288,6 @@ void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
         }
     }
     
-    // Draw confirm button
     int buttonWidth = 100;
     int buttonHeight = 30;
     int buttonX = dialogX + (dialogWidth - buttonWidth) / 2;
@@ -344,7 +315,6 @@ void UIManager::handleMouseEvent(int event, int x, int y, int flags) {
     
     if (showCameraDialog_) {
         if (event == cv::EVENT_LBUTTONDOWN) {
-            // Check if clicked on confirm button
             if (isPointInRect(point, confirmButtonRect_)) {
                 if (cameraSelectedCallback_ && !detectedCameras_.empty()) {
                     cameraSelectedCallback_(selectedCameraIndex_);
@@ -353,7 +323,6 @@ void UIManager::handleMouseEvent(int event, int x, int y, int flags) {
                 return;
             }
             
-            // Check if clicked on camera list (multiple cameras)
             if (isPointInRect(point, cameraListRect_) && detectedCameras_.size() > 1) {
                 int itemHeight = cameraListRect_.height / detectedCameras_.size();
                 int clickedIndex = (point.y - cameraListRect_.y) / itemHeight;
@@ -362,7 +331,6 @@ void UIManager::handleMouseEvent(int event, int x, int y, int flags) {
                 }
             }
             
-            // Click outside dialog to close
             if (!isPointInRect(point, cameraDialogRect_)) {
                 showCameraDialog_ = false;
             }
@@ -502,6 +470,10 @@ void UIManager::showCameraDetectionDialogWithInfo(const std::vector<CameraInfo>&
 
 void UIManager::setCameraSelectedCallback(std::function<void(int)> callback) {
     cameraSelectedCallback_ = callback;
+}
+
+void UIManager::setDeviceInfo(const std::string& deviceInfo) {
+    deviceInfo_ = deviceInfo;
 }
 
 void UIManager::defaultPowerCallback() {
