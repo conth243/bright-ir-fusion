@@ -53,9 +53,18 @@ int main() {
             std::cout << "Resolution: " << camera.getWidth() << "x" << camera.getHeight() << std::endl;
             std::cout << "FPS: " << camera.getFPS() << std::endl;
             cameraInitialized = true;
+            
+            // 设置设备信息到UI
+            std::string deviceInfo = "Camera Name: " + camera.getDeviceName() + "\n" +
+                                     "Resolution: " + std::to_string(camera.getWidth()) + "x" + std::to_string(camera.getHeight()) + "\n" +
+                                     "FPS: " + std::to_string(camera.getFPS());
+            ui.setDeviceInfo(deviceInfo);
         } else {
             std::cout << "Failed to initialize camera" << std::endl;
             cameraInitialized = false;
+            
+            // 重置设备信息
+            ui.setDeviceInfo("No device information available");
         }
     });
     

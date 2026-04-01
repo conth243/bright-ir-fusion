@@ -10,7 +10,8 @@ UIManager::UIManager()
     , showCameraDialog_(false)
     , showCameraInfo_(false)
     , selectedCameraIndex_(0)
-    , versionInfo_("Bright IR Fusion v1.0\nOpenCV Version: " + std::string(CV_VERSION)) {
+    , versionInfo_("Bright IR Fusion v1.1\nOpenCV Version: " + std::string(CV_VERSION))
+    , deviceInfo_("No device information available") {
 }
 
 UIManager::~UIManager() {
@@ -192,8 +193,8 @@ void UIManager::drawButton(cv::Mat& canvas, Button& button) {
 }
 
 void UIManager::drawAboutDialog(cv::Mat& canvas) {
-    int dialogWidth = 400;
-    int dialogHeight = 300;
+    int dialogWidth = 450;
+    int dialogHeight = 350;
     int dialogX = (windowWidth_ - dialogWidth) / 2;
     int dialogY = (windowHeight_ - dialogHeight) / 2;
     aboutDialogRect_ = cv::Rect(dialogX, dialogY, dialogWidth, dialogHeight);
@@ -201,6 +202,7 @@ void UIManager::drawAboutDialog(cv::Mat& canvas) {
     cv::rectangle(canvas, aboutDialogRect_, cv::Scalar(80, 80, 80), -1);
     cv::rectangle(canvas, aboutDialogRect_, cv::Scalar(200, 200, 200), 2);
     
+    // 第一块：关于
     cv::putText(canvas, "About", cv::Point(dialogX + 20, dialogY + 40),
                 cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 2);
     
@@ -213,8 +215,27 @@ void UIManager::drawAboutDialog(cv::Mat& canvas) {
         lineY += 30;
     }
     
+    // 分割线
+    cv::line(canvas, cv::Point(dialogX + 20, lineY + 10), cv::Point(dialogX + dialogWidth - 20, lineY + 10), cv::Scalar(150, 150, 150), 1);
+    
+    // 第二块：设备信息
+    cv::putText(canvas, "Device Information", cv::Point(dialogX + 20, lineY + 40),
+                cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 1);
+    
+    std::istringstream deviceIss(deviceInfo_);
+    int deviceLineY = lineY + 70;
+    while (std::getline(deviceIss, line)) {
+        cv::putText(canvas, line, cv::Point(dialogX + 20, deviceLineY),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(200, 200, 200), 1);
+        deviceLineY += 25;
+    }
+    
     cv::putText(canvas, "Press ESC or click outside to close", cv::Point(dialogX + 20, dialogY + dialogHeight - 20),
                 cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(150, 150, 150), 1);
+}
+
+void UIManager::setDeviceInfo(const std::string& deviceInfo) {
+    deviceInfo_ = deviceInfo;
 }
 
 void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {

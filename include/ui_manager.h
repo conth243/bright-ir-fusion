@@ -44,6 +44,7 @@ public:
     void showCameraDetectionDialog(const std::vector<std::string>& cameras);
     void showCameraDetectionDialogWithInfo(const std::vector<CameraInfo>& cameraInfos);
     void setCameraSelectedCallback(std::function<void(int)> callback);
+    void setDeviceInfo(const std::string& deviceInfo);
     
 private:
     std::string windowName_;
@@ -62,6 +63,7 @@ private:
     cv::Rect aboutDialogRect_;
     
     std::string versionInfo_;
+    std::string deviceInfo_;
     
     void initializeButtons();
     void drawButton(cv::Mat& canvas, Button& button);
