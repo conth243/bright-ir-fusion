@@ -86,7 +86,12 @@ bool Camera::initialize(int index, int width, int height, int fps) {
     cap.set(cv::CAP_PROP_FPS, fps);
     
     // 获取设备名称
-    deviceName = "Camera " + std::to_string(index);
+    std::vector<std::string> devices = enumerateVideoCaptureDevices();
+    if (!devices.empty() && index < devices.size()) {
+        deviceName = devices[index];
+    } else {
+        deviceName = "Camera " + std::to_string(index);
+    }
     
     return true;
 }
