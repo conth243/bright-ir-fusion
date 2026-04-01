@@ -45,4 +45,18 @@ bool isCameraAvailable(int index);
 // 获取摄像头设备的详细信息
 std::string getCameraInfo(int index);
 
+// 获取摄像头设备的详细信息，包括名称、分辨率和帧率
+struct CameraInfo {
+    std::string name;
+    int width;
+    int height;
+    int fps;
+};
+
+// 获取摄像头设备的详细信息（包括分辨率和帧率）
+CameraInfo getCameraInfoWithParams(int index);
+
+// 枚举所有可用的摄像头，返回详细信息列表
+std::vector<CameraInfo> enumerateCamerasWithParams();
+
 #endif // CAMERA_H

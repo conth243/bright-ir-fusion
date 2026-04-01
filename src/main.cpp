@@ -23,11 +23,12 @@ int main() {
     std::cout << "Right buttons: Zoom, Capture, Pseudo" << std::endl;
     std::cout << "Press ESC to exit" << std::endl;
     
-    // Enumerate available cameras
-    std::vector<std::string> cameras = enumerateCameras();
+    // Enumerate available cameras with detailed info
+    std::vector<CameraInfo> cameraInfos = enumerateCamerasWithParams();
     std::cout << "Available cameras:" << std::endl;
-    for (size_t i = 0; i < cameras.size(); i++) {
-        std::cout << "  " << i << ": " << cameras[i] << std::endl;
+    for (size_t i = 0; i < cameraInfos.size(); i++) {
+        const auto& info = cameraInfos[i];
+        std::cout << "  " << i << ": " << info.name << " (" << info.width << "x" << info.height << ", " << info.fps << "fps)" << std::endl;
     }
     
     // Camera and UI state
@@ -38,7 +39,8 @@ int main() {
     // Set camera selected callback
     ui.setCameraSelectedCallback([&](int index) {
         selectedCameraIndex = index;
-        std::cout << "Selected camera: " << cameras[index] << std::endl;
+        const auto& info = cameraInfos[index];
+        std::cout << "Selected camera: " << info.name << std::endl;
         
         // Initialize camera
         if (cameraInitialized) {
@@ -47,6 +49,9 @@ int main() {
         
         if (camera.initialize(index, 640, 480, 30)) {
             std::cout << "Camera initialized successfully" << std::endl;
+            std::cout << "Camera name: " << camera.getDeviceName() << std::endl;
+            std::cout << "Resolution: " << camera.getWidth() << "x" << camera.getHeight() << std::endl;
+            std::cout << "FPS: " << camera.getFPS() << std::endl;
             cameraInitialized = true;
         } else {
             std::cout << "Failed to initialize camera" << std::endl;
@@ -54,8 +59,8 @@ int main() {
         }
     });
     
-    // Show camera detection dialog
-    ui.showCameraDetectionDialog(cameras);
+    // Show camera detection dialog with detailed info
+    ui.showCameraDetectionDialogWithInfo(cameraInfos);
     
     // Main loop
     cv::Mat frame;

@@ -8,6 +8,7 @@ UIManager::UIManager()
     , isRunning_(false)
     , showAbout_(false)
     , showCameraDialog_(false)
+    , showCameraInfo_(false)
     , selectedCameraIndex_(0)
     , versionInfo_("Bright IR Fusion v1.0\nOpenCV Version: " + std::string(CV_VERSION)) {
 }
@@ -217,8 +218,8 @@ void UIManager::drawAboutDialog(cv::Mat& canvas) {
 }
 
 void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
-    int dialogWidth = 400;
-    int dialogHeight = detectedCameras_.empty() ? 200 : 300;
+    int dialogWidth = 450;
+    int dialogHeight = detectedCameras_.empty() ? 200 : 350;
     int dialogX = (windowWidth_ - dialogWidth) / 2;
     int dialogY = (windowHeight_ - dialogHeight) / 2;
     cameraDialogRect_ = cv::Rect(dialogX, dialogY, dialogWidth, dialogHeight);
@@ -241,6 +242,18 @@ void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
                     cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(200, 200, 200), 1);
         cv::putText(canvas, detectedCameras_[0], cv::Point(dialogX + 20, dialogY + 120),
                     cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(100, 255, 100), 1);
+        
+        // Show camera info if available
+        if (showCameraInfo_ && !detectedCameraInfos_.empty()) {
+            const auto& info = detectedCameraInfos_[0];
+            std::string resolution = "Resolution: " + std::to_string(info.width) + "x" + std::to_string(info.height);
+            std::string fps = "FPS: " + std::to_string(info.fps);
+            
+            cv::putText(canvas, resolution, cv::Point(dialogX + 20, dialogY + 160),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(200, 200, 200), 1);
+            cv::putText(canvas, fps, cv::Point(dialogX + 20, dialogY + 190),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(200, 200, 200), 1);
+        }
     } else {
         // Multiple cameras found
         cv::putText(canvas, "Multiple cameras found:", cv::Point(dialogX + 20, dialogY + 80),
@@ -248,7 +261,7 @@ void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
         
         // Draw camera list
         int listWidth = dialogWidth - 40;
-        int listHeight = 120;
+        int listHeight = 150;
         int listX = dialogX + 20;
         int listY = dialogY + 110;
         cameraListRect_ = cv::Rect(listX, listY, listWidth, listHeight);
@@ -265,6 +278,20 @@ void UIManager::drawCameraDetectionDialog(cv::Mat& canvas) {
             }
             cv::putText(canvas, detectedCameras_[i], cv::Point(listX + 10, listY + i * itemHeight + itemHeight / 2 + 5),
                         cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        }
+        
+        // Show selected camera info if available
+        if (showCameraInfo_ && !detectedCameraInfos_.empty() && selectedCameraIndex_ < detectedCameraInfos_.size()) {
+            const auto& info = detectedCameraInfos_[selectedCameraIndex_];
+            std::string resolution = "Resolution: " + std::to_string(info.width) + "x" + std::to_string(info.height);
+            std::string fps = "FPS: " + std::to_string(info.fps);
+            
+            cv::putText(canvas, "Selected camera info:", cv::Point(dialogX + 20, dialogY + 270),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(200, 200, 200), 1);
+            cv::putText(canvas, resolution, cv::Point(dialogX + 20, dialogY + 300),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(200, 200, 200), 1);
+            cv::putText(canvas, fps, cv::Point(dialogX + 20, dialogY + 320),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(200, 200, 200), 1);
         }
     }
     
@@ -437,6 +464,18 @@ void UIManager::setPseudoColorCallback(std::function<void()> callback) {
 void UIManager::showCameraDetectionDialog(const std::vector<std::string>& cameras) {
     detectedCameras_ = cameras;
     selectedCameraIndex_ = 0;
+    showCameraInfo_ = false;
+    showCameraDialog_ = true;
+}
+
+void UIManager::showCameraDetectionDialogWithInfo(const std::vector<CameraInfo>& cameraInfos) {
+    detectedCameraInfos_ = cameraInfos;
+    detectedCameras_.clear();
+    for (const auto& info : cameraInfos) {
+        detectedCameras_.push_back(info.name);
+    }
+    selectedCameraIndex_ = 0;
+    showCameraInfo_ = true;
     showCameraDialog_ = true;
 }
 

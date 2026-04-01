@@ -170,3 +170,53 @@ std::string getCameraInfo(int idx) {
     c.release();
     return info;
 }
+
+CameraInfo getCameraInfoWithParams(int idx) {
+    CameraInfo info;
+    info.name = "Camera " + std::to_string(idx);
+    info.width = 0;
+    info.height = 0;
+    info.fps = 0;
+    
+    cv::VideoCapture c(idx);
+    if (!c.isOpened()) {
+        return info;
+    }
+    
+    // 获取设备名称
+    std::vector<std::string> devices = enumerateVideoCaptureDevices();
+    if (!devices.empty() && idx < devices.size()) {
+        info.name = devices[idx];
+    }
+    
+    // 获取摄像头的实际分辨率和帧率
+    double width = c.get(cv::CAP_PROP_FRAME_WIDTH);
+    double height = c.get(cv::CAP_PROP_FRAME_HEIGHT);
+    double fps = c.get(cv::CAP_PROP_FPS);
+    
+    info.width = static_cast<int>(width);
+    info.height = static_cast<int>(height);
+    info.fps = static_cast<int>(fps);
+    
+    c.release();
+    return info;
+}
+
+std::vector<CameraInfo> enumerateCamerasWithParams() {
+    std::vector<CameraInfo> cameraInfos;
+    int i = 0;
+    
+    while (true) {
+        CameraInfo info = getCameraInfoWithParams(i);
+        cv::VideoCapture c(i);
+        if (c.isOpened()) {
+            cameraInfos.push_back(info);
+            c.release();
+            i++;
+        } else {
+            break;
+        }
+    }
+    
+    return cameraInfos;
+}

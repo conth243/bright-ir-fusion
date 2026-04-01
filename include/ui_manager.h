@@ -6,6 +6,7 @@
 #include <functional>
 #include <vector>
 #include <sstream>
+#include "camera.h"
 
 struct Button {
     std::string label;
@@ -41,6 +42,7 @@ public:
     
     // 摄像头检测和选择相关方法
     void showCameraDetectionDialog(const std::vector<std::string>& cameras);
+    void showCameraDetectionDialogWithInfo(const std::vector<CameraInfo>& cameraInfos);
     void setCameraSelectedCallback(std::function<void(int)> callback);
     
 private:
@@ -77,6 +79,8 @@ private:
     // 摄像头检测对话框相关
     bool showCameraDialog_;
     std::vector<std::string> detectedCameras_;
+    std::vector<CameraInfo> detectedCameraInfos_;
+    bool showCameraInfo_;
     int selectedCameraIndex_;
     cv::Rect cameraDialogRect_;
     cv::Rect cameraListRect_;
