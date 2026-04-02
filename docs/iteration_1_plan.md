@@ -43,7 +43,17 @@ BIF/
 - 配置可执行文件
 - 配置链接库
 
-### 3.3 基础框架实现
+### 3.3 环境配置详情
+- **操作系统**：Windows 10/11 64-bit
+- **编译器**：MSVC 14.50.35728.0 (Visual Studio Build Tools 2026)
+- **MSVC编译器路径**：`D:/VS/BuildTools/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/`
+- **Windows SDK版本**：10.0.26100.0
+- **OpenCV版本**：4.12.0
+- **OpenCV安装路径**：`C:/opencv/`
+- **OpenCV构建路径**：`C:/opencv/build/`
+- **构建类型**：64-bit Release
+
+### 3.4 基础框架实现
 - 创建main.cpp文件，实现最小化的主程序
 - 确保程序能够成功编译和运行
 - 验证OpenCV能够正常使用

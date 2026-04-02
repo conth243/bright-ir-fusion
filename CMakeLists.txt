@@ -23,7 +23,7 @@ set(CMAKE_SYSTEM_VERSION 10.0.26100.0)
 set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION 10.0.26100.0)
 
 # 设置OpenCV路径
-set(OpenCV_DIR "C:/opencv/build/x64/vc18")
+set(OpenCV_DIR "C:/opencv/build/x64/vc18/lib")
 
 # 查找OpenCV库
 find_package(OpenCV REQUIRED)
@@ -35,7 +35,7 @@ else()
 endif()
 
 # 添加可执行文件
-add_executable(StereoCameraApp src/main.cpp src/ui_manager.cpp src/camera.cpp)
+add_executable(bif src/main.cpp src/ui_manager.cpp src/camera.cpp)
 
 # 链接库
-target_link_libraries(StereoCameraApp ${OpenCV_LIBS} gdi32 user32 kernel32)
+target_link_libraries(bif ${OpenCV_LIBS} gdi32 user32 kernel32 strmiids ole32 oleaut32)
