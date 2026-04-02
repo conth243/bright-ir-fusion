@@ -1,6 +1,7 @@
 #include "ui_manager.h"
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <iomanip>
 
 UIManager::UIManager() 
     : windowWidth_(1024)
@@ -10,8 +11,9 @@ UIManager::UIManager()
     , showCameraDialog_(false)
     , showCameraInfo_(false)
     , selectedCameraIndex_(0)
-    , versionInfo_("Bright IR Fusion v1.1")
-    , deviceInfo_("No camera found") {
+    , versionInfo_("Bright IR Fusion")
+    , deviceInfo_("No camera found")
+    , resolutionInfo_("") {
 }
 
 UIManager::~UIManager() {
@@ -131,6 +133,34 @@ void UIManager::render() {
     
     if (!displayImage_.empty()) {
         displayImage_.copyTo(canvas(displayRect_));
+        
+        if (!resolutionInfo_.empty()) {
+            std::istringstream iss(resolutionInfo_);
+            std::string line;
+            std::string scaleStr;
+            while (std::getline(iss, line)) {
+                if (line.find("Scale:") != std::string::npos) {
+                    size_t pos = line.find(":") + 2;
+                    size_t endPos = line.find("%");
+                    if (pos != std::string::npos && endPos != std::string::npos) {
+                        std::string scaleVal = line.substr(pos, endPos - pos);
+                        float scale = std::stof(scaleVal) / 100.0f;
+                        std::ostringstream scaleOss;
+                        scaleOss << std::fixed << std::setprecision(1) << scale << "X";
+                        scaleStr = scaleOss.str();
+                    }
+                    break;
+                }
+            }
+            
+            if (!scaleStr.empty()) {
+                cv::Rect scaleRect(windowWidth_ - 100, 20, 80, 40);
+                cv::rectangle(canvas, scaleRect, cv::Scalar(0, 0, 0, 128), -1);
+                cv::rectangle(canvas, scaleRect, cv::Scalar(200, 200, 200), 1);
+                cv::putText(canvas, scaleStr, cv::Point(windowWidth_ - 70, 45),
+                            cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2);
+            }
+        }
     } else {
         cv::Mat placeholder(displayRect_.height, displayRect_.width, CV_8UC3, cv::Scalar(30, 30, 30));
         cv::putText(placeholder, "No Image", cv::Point(displayRect_.width/2 - 50, displayRect_.height/2),
@@ -474,6 +504,22 @@ void UIManager::setCameraSelectedCallback(std::function<void(int)> callback) {
 
 void UIManager::setDeviceInfo(const std::string& deviceInfo) {
     deviceInfo_ = deviceInfo;
+}
+
+void UIManager::setVersionInfo(const std::string& version) {
+    versionInfo_ = "Bright IR Fusion " + version;
+}
+
+void UIManager::setResolutionInfo(int inputWidth, int inputHeight, int outputWidth, int outputHeight) {
+    float inputRatio = static_cast<float>(inputWidth) / inputHeight;
+    float outputRatio = static_cast<float>(outputWidth) / outputHeight;
+    
+    std::ostringstream oss;
+    oss << "Input: " << inputWidth << "x" << inputHeight << " (" << std::fixed << std::setprecision(1) << inputRatio << ":1)" << std::endl;
+    oss << "Output: " << outputWidth << "x" << outputHeight << " (" << std::fixed << std::setprecision(1) << outputRatio << ":1)" << std::endl;
+    oss << "Scale: " << std::fixed << std::setprecision(1) << (static_cast<float>(outputWidth) / inputWidth * 100) << "%";
+    
+    resolutionInfo_ = oss.str();
 }
 
 void UIManager::defaultPowerCallback() {
