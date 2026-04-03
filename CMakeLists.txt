@@ -33,7 +33,7 @@ set(CONFIG_FILE "version.ini")
 
 # 获取当前日期和时间
 string(TIMESTAMP CURRENT_DATE "%Y%m%d" UTC)
-string(TIMESTAMP CURRENT_DATETIME "%Y%m%d%H%M" UTC)
+string(TIMESTAMP CURRENT_DATETIME "%Y%m%d%H%M%S" UTC)
 string(TIMESTAMP CURRENT_TIME "%H%M%S" UTC)
 
 # 读取配置文件
