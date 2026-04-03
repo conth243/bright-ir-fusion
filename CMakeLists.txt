@@ -34,6 +34,7 @@ set(CONFIG_FILE "version.ini")
 # 获取当前日期和时间
 string(TIMESTAMP CURRENT_DATE "%Y%m%d" UTC)
 string(TIMESTAMP CURRENT_DATETIME "%Y%m%d%H%M" UTC)
+string(TIMESTAMP CURRENT_TIME "%H%M%S" UTC)
 
 # 读取配置文件
 if(EXISTS ${CONFIG_FILE})
@@ -78,6 +79,7 @@ math(EXPR NEXT_SERIAL_NUMBER "${SERIAL_NUMBER} + 1")
 file(WRITE ${CONFIG_FILE} "version=${VERSION}\n")
 file(APPEND ${CONFIG_FILE} "base_version=${BASE_VERSION}\n")
 file(APPEND ${CONFIG_FILE} "build_date=${BUILD_DATE}\n")
+file(APPEND ${CONFIG_FILE} "build_time=${CURRENT_TIME}\n")
 file(APPEND ${CONFIG_FILE} "serial_number=${NEXT_SERIAL_NUMBER}\n")
 
 # 输出版本号
@@ -105,4 +107,14 @@ add_custom_command(
     ${CMAKE_SOURCE_DIR}/${CONFIG_FILE}
     $<TARGET_FILE_DIR:bif>
     COMMENT "Copying version.ini to output directory"
+)
+
+# 复制可执行文件到项目根目录
+add_custom_command(
+    TARGET bif
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    $<TARGET_FILE:bif>
+    ${CMAKE_SOURCE_DIR}
+    COMMENT "Copying bif.exe to project root directory"
 )
