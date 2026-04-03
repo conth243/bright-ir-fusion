@@ -31,10 +31,10 @@ set(SOURCE_FILES
 set(BASE_VERSION "v1.1")
 set(CONFIG_FILE "version.ini")
 
-# 获取当前日期和时间
-string(TIMESTAMP CURRENT_DATE "%Y%m%d" UTC)
-string(TIMESTAMP CURRENT_DATETIME "%Y%m%d%H%M%S" UTC)
-string(TIMESTAMP CURRENT_TIME "%H%M%S" UTC)
+# 获取当前日期和时间（使用本地时间，即北京时间）
+string(TIMESTAMP CURRENT_DATE "%Y%m%d")
+string(TIMESTAMP CURRENT_DATETIME "%Y%m%d%H%M%S")
+string(TIMESTAMP CURRENT_TIME "%H%M%S")
 
 # 读取配置文件
 if(EXISTS ${CONFIG_FILE})
