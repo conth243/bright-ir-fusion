@@ -99,6 +99,14 @@ add_custom_command(
     COMMENT "Creating output directory"
 )
 
+# 编译生成之前，删除根目录下的上一个生成的程序文件
+add_custom_command(
+    TARGET bif
+    PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/bif.exe
+    COMMENT "Removing previous bif.exe from project root directory"
+)
+
 # 复制版本文件到输出目录
 add_custom_command(
     TARGET bif
