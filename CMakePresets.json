@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "bright-ir-fusion",
+      "description": "Bright IR Fusion project configuration. 注意：重启Trae CN后，需要在启动时选择一次预设才能最终生效。如果遇到\"无法确定要使用的CMake生成器\"的提示，请重新选择预设。",
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "cacheVariables": {
+        "OpenCV_DIR": "C:/opencv/build/x64/vc18/lib",
+        "CMAKE_CXX_STANDARD": "11",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+        "CMAKE_CXX_COMPILER": "D:/VS/BuildTools/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe",
+        "CMAKE_C_COMPILER": "D:/VS/BuildTools/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe"
+      },
+      "binaryDir": "${sourceDir}/build"
+    }
+  ]
+}
